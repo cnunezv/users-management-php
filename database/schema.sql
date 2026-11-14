@@ -10,6 +10,10 @@
 -- ejecuta el resto sobre esa base.
 -- ============================================================
 
+-- El script está en UTF-8: se fija la codificación de la conexión para
+-- que las tildes y la ñ se guarden bien sin importar el cliente usado.
+SET NAMES utf8mb4;
+
 -- ------------------------------------------------------------
 -- 1. Base de datos
 -- ------------------------------------------------------------
