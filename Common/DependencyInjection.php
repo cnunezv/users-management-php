@@ -156,4 +156,95 @@ final class DependencyInjection
             self::getUserRepository()
         );
     }
+
+    // ──────────────────────────────────────────────────────────────
+    // Ejercicio 19: CarreraTaxi
+    // ──────────────────────────────────────────────────────────────
+
+    public static function getCarreraTaxiPersistenceMapper(): CarreraTaxiPersistenceMapper
+    {
+        ClassLoader::loadClass('CarreraTaxiPersistenceMapper');
+
+        return new CarreraTaxiPersistenceMapper();
+    }
+
+    public static function getCarreraTaxiRepository(): CarreraTaxiRepositoryMySQL
+    {
+        ClassLoader::loadClass('CarreraTaxiRepositoryMySQL');
+
+        return new CarreraTaxiRepositoryMySQL(
+            self::getPdo(),
+            self::getCarreraTaxiPersistenceMapper()
+        );
+    }
+
+    public static function getCreateCarreraTaxiUseCase(): CreateCarreraTaxiUseCase
+    {
+        ClassLoader::loadClass('CreateCarreraTaxiService');
+
+        return new CreateCarreraTaxiService(
+            self::getCarreraTaxiRepository()
+        );
+    }
+
+    public static function getUpdateCarreraTaxiUseCase(): UpdateCarreraTaxiUseCase
+    {
+        ClassLoader::loadClass('UpdateCarreraTaxiService');
+        $repository = self::getCarreraTaxiRepository();
+
+        return new UpdateCarreraTaxiService(
+            $repository,
+            $repository
+        );
+    }
+
+    public static function getGetCarreraTaxiByIdUseCase(): GetCarreraTaxiByIdUseCase
+    {
+        ClassLoader::loadClass('GetCarreraTaxiByIdService');
+
+        return new GetCarreraTaxiByIdService(
+            self::getCarreraTaxiRepository()
+        );
+    }
+
+    public static function getGetAllCarrerasTaxiUseCase(): GetAllCarrerasTaxiUseCase
+    {
+        ClassLoader::loadClass('GetAllCarrerasTaxiService');
+
+        return new GetAllCarrerasTaxiService(
+            self::getCarreraTaxiRepository()
+        );
+    }
+
+    public static function getDeleteCarreraTaxiUseCase(): DeleteCarreraTaxiUseCase
+    {
+        ClassLoader::loadClass('DeleteCarreraTaxiService');
+        $repository = self::getCarreraTaxiRepository();
+
+        return new DeleteCarreraTaxiService(
+            $repository,
+            $repository
+        );
+    }
+
+    public static function getCarreraTaxiWebMapper(): CarreraTaxiWebMapper
+    {
+        ClassLoader::loadClass('CarreraTaxiWebMapper');
+
+        return new CarreraTaxiWebMapper();
+    }
+
+    public static function getCarreraTaxiController(): CarreraTaxiController
+    {
+        ClassLoader::loadClass('CarreraTaxiController');
+
+        return new CarreraTaxiController(
+            self::getCreateCarreraTaxiUseCase(),
+            self::getUpdateCarreraTaxiUseCase(),
+            self::getGetCarreraTaxiByIdUseCase(),
+            self::getGetAllCarrerasTaxiUseCase(),
+            self::getDeleteCarreraTaxiUseCase(),
+            self::getCarreraTaxiWebMapper()
+        );
+    }
 }
