@@ -114,3 +114,96 @@ Aplicación web PHP para la gestión de usuarios: registro, listado, visualizaci
 
 - Credenciales fuera del código fuente y del historial de git
 
+---
+
+## Ejercicio 19: CRUDL de CarreraTaxi
+
+Sobre la aplicación base se implementó el CRUDL de la entidad **CarreraTaxi**
+siguiendo las mismas capas, patrones y convenciones del CRUD de usuarios.
+
+**Autor:** Carlos Andrés Núñez Vargas — Ingeniería de Software, Universidad de Cartagena
+(Desarrollo de Software Web, Unidad 2).
+
+### Atributos y reglas de negocio
+
+| Atributo | Value object | Regla |
+|---|---|---|
+| `id` | `CarreraTaxiId` | UUID v4 generado por la aplicación; no puede estar vacío |
+| `cliente` | `CarreraTaxiCliente` | Entre 3 y 100 caracteres |
+| `taxi` | `CarreraTaxiTaxi` | Placa con formato `ABC123`; se normaliza a mayúsculas sin guion |
+| `kilometros` | `CarreraTaxiKilometros` | Mayor que 0 y máximo 1000 |
+| `barrioInicio` | `CarreraTaxiBarrio` | Entre 3 y 100 caracteres |
+| `barrioLlegada` | `CarreraTaxiBarrio` | Entre 3 y 100 caracteres |
+| `cantidadPasajeros` | `CarreraTaxiCantidadPasajeros` | Entre 1 y 4 |
+| `taxista` | `CarreraTaxiTaxista` | Entre 3 y 100 caracteres |
+| `precio` | `CarreraTaxiPrecio` | Mayor que 0 (COP) |
+| `duracionMinutos` | `CarreraTaxiDuracionMinutos` | Entero mayor que 0 |
+
+El modelo `CarreraTaxiModel` es inmutable y calcula el **precio por kilómetro**
+y la **velocidad promedio** de la carrera.
+
+### Recorrido por capas
+
+| Capa | Elementos de CarreraTaxi |
+|---|---|
+| Dominio | `Domain/Models/CarreraTaxiModel.php`, 9 value objects, 10 excepciones, 3 eventos |
+| Aplicación — puertos de salida | `Save`, `Update`, `GetById`, `GetAll` y `Delete` `CarreraTaxiPort` |
+| Aplicación — puertos de entrada | `Create`, `Update`, `GetById`, `GetAll` y `Delete` `CarreraTaxiUseCase` |
+| Aplicación — servicios | Un servicio por caso de uso, comandos y queries (CQRS), `CarreraTaxiApplicationMapper` |
+| Infraestructura — adaptadores | `CarreraTaxiRepositoryMySQL` (PDO), persistence DTO, entity y mapper |
+| Infraestructura — entrypoints | `CarreraTaxiController`, web requests/response, `CarreraTaxiWebMapper`, vistas `carreras/*` |
+| Común | Registro en `ClassLoader` y composición en `DependencyInjection` |
+
+### Rutas
+
+Todas exigen sesión iniciada.
+
+| Ruta | Método | Operación |
+|---|---|---|
+| `?route=carreras.create` | GET | Formulario de registro |
+| `?route=carreras.store` | POST | **C** — registrar |
+| `?route=carreras.show&id={id}` | GET | **R** — consultar |
+| `?route=carreras.edit&id={id}` | GET | Formulario de edición |
+| `?route=carreras.update` | POST | **U** — actualizar |
+| `?route=carreras.delete` | POST | **D** — eliminar |
+| `?route=carreras.index` | GET | **L** — listar |
+
+### Base de datos
+
+El script `database/schema.sql` crea la base `crud_usuarios`, las tablas `users`
+y `carreras_taxi`, el usuario administrador base y tres carreras de ejemplo.
+
+```bash
+mysql -u root -p < database/schema.sql
+cp .env.example .env    # y completar las credenciales de la base
+```
+
+Usuario administrador base: `admin@crud.com` / `admin12345`.
+
+### Ejecutar con Docker
+
+```bash
+docker compose up --build
+```
+
+- Aplicación: <http://localhost:8080/public/index.php>
+- MySQL queda publicado en el puerto `3307` del equipo.
+- `docker compose down -v` borra la base para volver a crearla desde el script.
+
+### Pruebas
+
+- **Prueba de humo:** `BASE_URL=http://localhost:8080/public/index.php bash tests/smoke.sh`
+  recorre login, CRUDL completo y dos reglas de dominio.
+- **Postman:** importar `postman/CarreraTaxi.postman_collection.json`, ejecutar
+  primero *Auth > Iniciar sesión* y luego las demás peticiones en orden.
+
+### Integración y despliegue continuo
+
+El workflow `.github/workflows/ci.yml` revisa la sintaxis PHP, ejecuta la prueba
+de humo contra un MySQL temporal y, en cada push a `main`, llama al deploy hook
+del servicio en la nube si existe el secreto `RENDER_DEPLOY_HOOK_URL`.
+
+Para desplegar la imagen (Render u otro servicio con Docker) se configuran las
+variables `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME` y `DB_PASSWORD`
+apuntando a la base de datos en la nube. El contenedor escucha en el puerto
+que indique la variable `PORT`.
