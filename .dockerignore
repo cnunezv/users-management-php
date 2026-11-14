@@ -1,0 +1,10 @@
+.git
+.github
+.env
+.env.*
+!.env.example
+docs
+postman
+tests
+docker-compose.yml
+*.md
