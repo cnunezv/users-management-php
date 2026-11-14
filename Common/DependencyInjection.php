@@ -19,12 +19,15 @@ final class DependencyInjection
     {
         ClassLoader::loadClass('Connection');
 
+        // Si no están las variables DB_*, se usan las que exporta el add-on
+        // MySQL de Clever Cloud (MYSQL_ADDON_*). Así el servicio en la nube
+        // se configura pegando ese bloque de variables tal cual.
         return new Connection(
-            host: EnvLoader::get('DB_HOST', '127.0.0.1'),
-            port: EnvLoader::getInt('DB_PORT', 3306),
-            database: EnvLoader::get('DB_DATABASE', 'crud_usuarios'),
-            username: EnvLoader::get('DB_USERNAME', 'root'),
-            password: EnvLoader::get('DB_PASSWORD', ''),
+            host: EnvLoader::get('DB_HOST', EnvLoader::get('MYSQL_ADDON_HOST', '127.0.0.1')),
+            port: EnvLoader::getInt('DB_PORT', EnvLoader::getInt('MYSQL_ADDON_PORT', 3306)),
+            database: EnvLoader::get('DB_DATABASE', EnvLoader::get('MYSQL_ADDON_DB', 'crud_usuarios')),
+            username: EnvLoader::get('DB_USERNAME', EnvLoader::get('MYSQL_ADDON_USER', 'root')),
+            password: EnvLoader::get('DB_PASSWORD', EnvLoader::get('MYSQL_ADDON_PASSWORD', '')),
             charset: EnvLoader::get('DB_CHARSET', 'utf8mb4')
         );
     }
