@@ -25,4 +25,14 @@
     <li><strong>L:</strong> Listar usuarios</li>
 </ul>
 
+<h2>CRUDL de carreras de taxi (ejercicio 19)</h2>
+
+<ul>
+    <li><strong>C:</strong> <a href="?route=carreras.create">Registrar carrera</a></li>
+    <li><strong>R:</strong> Consultar carrera (desde el listado, botón «Ver»)</li>
+    <li><strong>U:</strong> Actualizar carrera (desde el listado, botón «Editar»)</li>
+    <li><strong>D:</strong> Eliminar carrera (desde el listado, botón «Eliminar»)</li>
+    <li><strong>L:</strong> <a href="?route=carreras.index">Listar carreras</a></li>
+</ul>
+
 <?php require __DIR__ . '/layouts/footer.php'; ?>

@@ -5,11 +5,16 @@
  * elemento a eliminar, por ejemplo:
  *   <form ... onsubmit="return confirmDelete(this);" data-name="Juan">
  *
+ * Opcionalmente puede incluir `data-entity` para indicar qué se elimina
+ * (por defecto "al usuario"), por ejemplo:
+ *   <form ... data-entity="la carrera de" data-name="María">
+ *
  * @param {HTMLFormElement} form
  * @returns {boolean}
  */
 function confirmDelete(form) {
 
     var name = form.getAttribute('data-name');
-    return confirm('¿Eliminar al usuario ' + name + '?');
+    var entity = form.getAttribute('data-entity') || 'al usuario';
+    return confirm('¿Eliminar ' + entity + ' ' + name + '?');
 }
