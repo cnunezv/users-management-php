@@ -7,6 +7,8 @@ require_once __DIR__ . '/EnvLoader.php';
 
 final class DependencyInjection
 {
+    private static ?PDO $pdo = null;
+
     public static function boot(): void
     {
         EnvLoader::load(dirname(__DIR__) . '/.env');
@@ -27,9 +29,21 @@ final class DependencyInjection
         );
     }
 
+    /**
+     * Devuelve una única conexión PDO por petición.
+     *
+     * Cada repositorio pedía antes su propia conexión, de modo que armar un
+     * controlador abría cinco conexiones simultáneas. Los planes gratuitos de
+     * bases de datos en la nube limitan las conexiones por usuario (5 en
+     * Clever Cloud), así que se reutiliza la misma en toda la petición.
+     */
     public static function getPdo(): PDO
     {
-        return self::getConnection()->createPdo();
+        if (self::$pdo === null) {
+            self::$pdo = self::getConnection()->createPdo();
+        }
+
+        return self::$pdo;
     }
 
     public static function getUserPersistenceMapper(): UserPersistenceMapper
