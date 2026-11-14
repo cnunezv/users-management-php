@@ -277,6 +277,113 @@ try {
             View::redirect('auth.forgot');
             break;
 
+        // ── Ejercicio 19: CRUDL de carreras de taxi ──────────────
+
+        case 'carreras.create':
+            View::render('carreras/create', buildCreateCarreraTaxiViewData());
+            break;
+
+        case 'carreras.store':
+            $controller = DependencyInjection::getCarreraTaxiController();
+            $form = getCarreraTaxiFormData();
+            $form['id'] = generateUuid4();
+            $errors = validateCarreraTaxiForm($form);
+
+            if (!empty($errors)) {
+                Flash::setOld($form);
+                Flash::setErrors($errors);
+                Flash::setMessage('Corrige los errores del formulario.');
+                View::redirect('carreras.create');
+            }
+
+            $request = new CreateCarreraTaxiWebRequest(
+                $form['id'],
+                $form['cliente'],
+                $form['taxi'],
+                $form['kilometros'],
+                $form['barrioInicio'],
+                $form['barrioLlegada'],
+                $form['cantidadPasajeros'],
+                $form['taxista'],
+                $form['precio'],
+                $form['duracionMinutos']
+            );
+
+            $controller->store($request);
+
+            Flash::setSuccess('Carrera de taxi registrada correctamente.');
+            View::redirect('carreras.index');
+            break;
+
+        case 'carreras.index':
+            $controller = DependencyInjection::getCarreraTaxiController();
+            $carreras = $controller->index();
+            View::render('carreras/list', array(
+                'pageTitle' => 'Lista de carreras de taxi',
+                'carreras' => $carreras,
+                'message' => Flash::message(),
+                'success' => Flash::success(),
+            ));
+            break;
+
+        case 'carreras.show':
+            $controller = DependencyInjection::getCarreraTaxiController();
+            $id = isset($_GET['id']) ? trim((string) $_GET['id']) : '';
+            $carrera = $controller->show($id);
+            View::render('carreras/show', array(
+                'pageTitle' => 'Detalle de la carrera de taxi',
+                'carrera' => $carrera,
+                'message' => Flash::message(),
+            ));
+            break;
+
+        case 'carreras.edit':
+            $controller = DependencyInjection::getCarreraTaxiController();
+            $id = isset($_GET['id']) ? trim((string) $_GET['id']) : '';
+            $carrera = $controller->show($id);
+            View::render('carreras/edit', buildEditCarreraTaxiViewData($carrera));
+            break;
+
+        case 'carreras.update':
+            $controller = DependencyInjection::getCarreraTaxiController();
+            $form = getCarreraTaxiFormData();
+            $errors = validateCarreraTaxiForm($form);
+
+            if (!empty($errors)) {
+                Flash::setOld($form);
+                Flash::setErrors($errors);
+                Flash::setMessage('Corrige los errores del formulario.');
+                header('Location: ?route=carreras.edit&id=' . urlencode($form['id']));
+                exit;
+            }
+
+            $request = new UpdateCarreraTaxiWebRequest(
+                $form['id'],
+                $form['cliente'],
+                $form['taxi'],
+                $form['kilometros'],
+                $form['barrioInicio'],
+                $form['barrioLlegada'],
+                $form['cantidadPasajeros'],
+                $form['taxista'],
+                $form['precio'],
+                $form['duracionMinutos']
+            );
+
+            $controller->update($request);
+
+            Flash::setSuccess('Carrera de taxi actualizada correctamente.');
+            View::redirect('carreras.index');
+            break;
+
+        case 'carreras.delete':
+            $controller = DependencyInjection::getCarreraTaxiController();
+            $id = isset($_POST['id']) ? trim((string) $_POST['id']) : '';
+            $controller->delete($id);
+            Flash::setSuccess('Carrera de taxi eliminada correctamente.');
+            View::redirect('carreras.index');
+            break;
+
         default:
             throw new RuntimeException('Acción no soportada.');
     }
@@ -314,6 +421,23 @@ try {
         case 'users.delete':
             Flash::setMessage($msg);
             View::redirect('users.index');
+            break;
+
+        case 'carreras.store':
+            Flash::setOld(getCarreraTaxiFormData());
+            View::redirect('carreras.create');
+            break;
+
+        case 'carreras.update':
+            $carreraId = trim((string) ($_POST['id'] ?? ''));
+            Flash::setOld(getCarreraTaxiFormData());
+            header('Location: ?route=carreras.edit&id=' . urlencode($carreraId));
+            exit;
+
+        case 'carreras.show':
+        case 'carreras.edit':
+        case 'carreras.delete':
+            View::redirect('carreras.index');
             break;
 
         default:
@@ -502,6 +626,126 @@ function validateUpdateUserForm(array $form): array
 
     if ($form['status'] === '') {
         $errors['status'] = 'El estado es obligatorio.';
+    }
+
+    return $errors;
+}
+
+
+// ──────────────────────────────────────────────────────────────
+// Ejercicio 19: helpers del CRUDL de carreras de taxi
+// ──────────────────────────────────────────────────────────────
+
+/**
+ * @return array<string, mixed>
+ */
+function buildCreateCarreraTaxiViewData(): array
+{
+    return array(
+        'pageTitle' => 'Registrar carrera de taxi',
+        'minPasajeros' => CarreraTaxiCantidadPasajeros::MIN,
+        'maxPasajeros' => CarreraTaxiCantidadPasajeros::MAX,
+        'message' => Flash::message(),
+        'success' => Flash::success(),
+        'errors' => Flash::errors(),
+        'old' => Flash::old(),
+    );
+}
+
+/**
+ * @return array<string, mixed>
+ */
+function buildEditCarreraTaxiViewData(CarreraTaxiResponse $carrera): array
+{
+    return array(
+        'pageTitle' => 'Editar carrera de taxi',
+        'carrera' => $carrera,
+        'minPasajeros' => CarreraTaxiCantidadPasajeros::MIN,
+        'maxPasajeros' => CarreraTaxiCantidadPasajeros::MAX,
+        'message' => Flash::message(),
+        'errors' => Flash::errors(),
+        'old' => Flash::old(),
+    );
+}
+
+/**
+ * Lee del POST los campos del formulario de carrera (registro y edición).
+ * Los números aceptan coma o punto como separador decimal.
+ *
+ * @return array<string, string>
+ */
+function getCarreraTaxiFormData(): array
+{
+    $text = static function (string $field): string {
+        return isset($_POST[$field]) ? trim((string) $_POST[$field]) : '';
+    };
+
+    $number = static function (string $field) use ($text): string {
+        return str_replace(',', '.', $text($field));
+    };
+
+    return array(
+        'id' => $text('id'),
+        'cliente' => $text('cliente'),
+        'taxi' => strtoupper($text('taxi')),
+        'kilometros' => $number('kilometros'),
+        'barrioInicio' => $text('barrioInicio'),
+        'barrioLlegada' => $text('barrioLlegada'),
+        'cantidadPasajeros' => $text('cantidadPasajeros'),
+        'taxista' => $text('taxista'),
+        'precio' => $number('precio'),
+        'duracionMinutos' => $text('duracionMinutos'),
+    );
+}
+
+/**
+ * Validación de forma del formulario (campos vacíos y tipos de dato).
+ * Las reglas de negocio (rangos, formato de placa, etc.) viven en los
+ * value objects del dominio.
+ *
+ * @param array<string, string> $form
+ * @return array<string, string>
+ */
+function validateCarreraTaxiForm(array $form): array
+{
+    $errors = array();
+
+    $required = array(
+        'cliente' => 'El cliente es obligatorio.',
+        'taxista' => 'El taxista es obligatorio.',
+        'taxi' => 'La placa del taxi es obligatoria.',
+        'barrioInicio' => 'El barrio de inicio es obligatorio.',
+        'barrioLlegada' => 'El barrio de llegada es obligatorio.',
+    );
+
+    foreach ($required as $field => $errorMessage) {
+        if ($form[$field] === '') {
+            $errors[$field] = $errorMessage;
+        }
+    }
+
+    if ($form['kilometros'] === '') {
+        $errors['kilometros'] = 'Los kilómetros son obligatorios.';
+    } elseif (!is_numeric($form['kilometros'])) {
+        $errors['kilometros'] = 'Los kilómetros deben ser un número.';
+    }
+
+    if ($form['precio'] === '') {
+        $errors['precio'] = 'El precio es obligatorio.';
+    } elseif (!is_numeric($form['precio'])) {
+        $errors['precio'] = 'El precio debe ser un número.';
+    }
+
+    if ($form['duracionMinutos'] === '') {
+        $errors['duracionMinutos'] = 'La duración es obligatoria.';
+    } elseif (!ctype_digit($form['duracionMinutos'])) {
+        $errors['duracionMinutos'] = 'La duración debe ser un número entero de minutos.';
+    }
+
+    if ($form['cantidadPasajeros'] === '') {
+        $errors['cantidadPasajeros'] = 'La cantidad de pasajeros es obligatoria.';
+    } elseif (!ctype_digit($form['cantidadPasajeros'])) {
+        $errors['cantidadPasajeros'] = 'La cantidad de pasajeros debe ser un número entero.';
     }
 
     return $errors;

@@ -42,6 +42,34 @@ final class WebRoutes
                 'method' => 'POST',
                 'action' => 'delete',
             ),
+            'carreras.create' => array(
+                'method' => 'GET',
+                'action' => 'carreras.create',
+            ),
+            'carreras.store' => array(
+                'method' => 'POST',
+                'action' => 'carreras.store',
+            ),
+            'carreras.index' => array(
+                'method' => 'GET',
+                'action' => 'carreras.index',
+            ),
+            'carreras.show' => array(
+                'method' => 'GET',
+                'action' => 'carreras.show',
+            ),
+            'carreras.edit' => array(
+                'method' => 'GET',
+                'action' => 'carreras.edit',
+            ),
+            'carreras.update' => array(
+                'method' => 'POST',
+                'action' => 'carreras.update',
+            ),
+            'carreras.delete' => array(
+                'method' => 'POST',
+                'action' => 'carreras.delete',
+            ),
             'auth.login' => array(
                 'method' => 'GET',
                 'action' => 'login',
