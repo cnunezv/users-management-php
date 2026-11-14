@@ -81,6 +81,11 @@ table.detail-table th {
     white-space: nowrap;
 }
 
+.col-number {
+    text-align: right;
+    white-space: nowrap;
+}
+
 /* ── Botones ── */
 .btn {
     display: inline-block;
