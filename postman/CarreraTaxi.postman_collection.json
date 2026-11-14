@@ -1,0 +1,673 @@
+{
+  "info": {
+    "name": "CarreraTaxi - Hexagonal DDD PHP (Ejercicio 19)",
+    "description": "Pruebas del CRUDL de carreras de taxi.\n\nLa aplicación es web con sesión (no es una API REST): las peticiones envían formularios y responden HTML. Postman conserva la cookie de sesión, así que ejecuta primero **Auth > Iniciar sesión** y luego las demás en orden.\n\nVariables de la colección:\n- `base_url`: URL del front controller (por defecto http://localhost:8080/public/index.php).\n- `carrera_id`: se llena sola al ejecutar **Listar carreras** después de registrar una carrera.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080/public/index.php"
+    },
+    {
+      "key": "admin_email",
+      "value": "admin@crud.com"
+    },
+    {
+      "key": "admin_password",
+      "value": "admin12345"
+    },
+    {
+      "key": "carrera_id",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Iniciar sesión",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}?route=auth.authenticate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "query": [
+                {
+                  "key": "route",
+                  "value": "auth.authenticate"
+                }
+              ]
+            },
+            "description": "Inicia sesión con el usuario administrador base. Postman guarda la cookie de sesión.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "email",
+                  "value": "{{admin_email}}",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "{{admin_password}}",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Respuesta 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Contiene: Cerrar sesión', function () { pm.expect(pm.response.text()).to.include('Cerrar sesión'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cerrar sesión",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}?route=auth.logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "query": [
+                {
+                  "key": "route",
+                  "value": "auth.logout"
+                }
+              ]
+            },
+            "description": "Destruye la sesión."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Carreras de taxi",
+      "item": [
+        {
+          "name": "C - Registrar carrera",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}?route=carreras.store",
+              "host": [
+                "{{base_url}}"
+              ],
+              "query": [
+                {
+                  "key": "route",
+                  "value": "carreras.store"
+                }
+              ]
+            },
+            "description": "Registra una carrera. Redirige al listado con el mensaje de éxito.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "cliente",
+                  "value": "Pedro Pérez",
+                  "type": "text"
+                },
+                {
+                  "key": "taxista",
+                  "value": "Juan Gómez",
+                  "type": "text"
+                },
+                {
+                  "key": "taxi",
+                  "value": "ABC123",
+                  "type": "text"
+                },
+                {
+                  "key": "barrioInicio",
+                  "value": "Torices",
+                  "type": "text"
+                },
+                {
+                  "key": "barrioLlegada",
+                  "value": "Getsemaní",
+                  "type": "text"
+                },
+                {
+                  "key": "kilometros",
+                  "value": "4.5",
+                  "type": "text"
+                },
+                {
+                  "key": "duracionMinutos",
+                  "value": "15",
+                  "type": "text"
+                },
+                {
+                  "key": "cantidadPasajeros",
+                  "value": "3",
+                  "type": "text"
+                },
+                {
+                  "key": "precio",
+                  "value": "10000",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Respuesta 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Contiene: Carrera de taxi registrada correctamente.', function () { pm.expect(pm.response.text()).to.include('Carrera de taxi registrada correctamente.'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "L - Listar carreras",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}?route=carreras.index",
+              "host": [
+                "{{base_url}}"
+              ],
+              "query": [
+                {
+                  "key": "route",
+                  "value": "carreras.index"
+                }
+              ]
+            },
+            "description": "Lista todas las carreras y guarda en `carrera_id` el id de la primera fila (la más reciente)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Respuesta 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Contiene: Lista de carreras de taxi', function () { pm.expect(pm.response.text()).to.include('Lista de carreras de taxi'); });",
+                  "var match = pm.response.text().match(/route=carreras\\.show&amp;id=([0-9a-f-]{36})/);",
+                  "if (match) { pm.collectionVariables.set('carrera_id', match[1]); }",
+                  "pm.test('Se guardó carrera_id', function () { pm.expect(pm.collectionVariables.get('carrera_id')).to.not.be.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "R - Consultar carrera",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}?route=carreras.show&id={{carrera_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "query": [
+                {
+                  "key": "route",
+                  "value": "carreras.show"
+                },
+                {
+                  "key": "id",
+                  "value": "{{carrera_id}}"
+                }
+              ]
+            },
+            "description": "Detalle de una carrera, con precio por km y velocidad promedio calculados por el dominio."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Respuesta 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Contiene: Detalle de la carrera de taxi', function () { pm.expect(pm.response.text()).to.include('Detalle de la carrera de taxi'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "U - Actualizar carrera",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}?route=carreras.update",
+              "host": [
+                "{{base_url}}"
+              ],
+              "query": [
+                {
+                  "key": "route",
+                  "value": "carreras.update"
+                }
+              ]
+            },
+            "description": "Modifica la carrera guardada en `carrera_id`.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "id",
+                  "value": "{{carrera_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "cliente",
+                  "value": "Pedro Pérez",
+                  "type": "text"
+                },
+                {
+                  "key": "taxista",
+                  "value": "Juan Gómez",
+                  "type": "text"
+                },
+                {
+                  "key": "taxi",
+                  "value": "ABC123",
+                  "type": "text"
+                },
+                {
+                  "key": "barrioInicio",
+                  "value": "Torices",
+                  "type": "text"
+                },
+                {
+                  "key": "barrioLlegada",
+                  "value": "Manga",
+                  "type": "text"
+                },
+                {
+                  "key": "kilometros",
+                  "value": "6",
+                  "type": "text"
+                },
+                {
+                  "key": "duracionMinutos",
+                  "value": "20",
+                  "type": "text"
+                },
+                {
+                  "key": "cantidadPasajeros",
+                  "value": "4",
+                  "type": "text"
+                },
+                {
+                  "key": "precio",
+                  "value": "12500",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Respuesta 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Contiene: Carrera de taxi actualizada correctamente.', function () { pm.expect(pm.response.text()).to.include('Carrera de taxi actualizada correctamente.'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "D - Eliminar carrera",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}?route=carreras.delete",
+              "host": [
+                "{{base_url}}"
+              ],
+              "query": [
+                {
+                  "key": "route",
+                  "value": "carreras.delete"
+                }
+              ]
+            },
+            "description": "Elimina la carrera guardada en `carrera_id`.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "id",
+                  "value": "{{carrera_id}}",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Respuesta 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Contiene: Carrera de taxi eliminada correctamente.', function () { pm.expect(pm.response.text()).to.include('Carrera de taxi eliminada correctamente.'); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Validaciones del dominio",
+      "item": [
+        {
+          "name": "Placa inválida",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}?route=carreras.store",
+              "host": [
+                "{{base_url}}"
+              ],
+              "query": [
+                {
+                  "key": "route",
+                  "value": "carreras.store"
+                }
+              ]
+            },
+            "description": "El value object CarreraTaxiTaxi rechaza la placa.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "cliente",
+                  "value": "Pedro Pérez",
+                  "type": "text"
+                },
+                {
+                  "key": "taxista",
+                  "value": "Juan Gómez",
+                  "type": "text"
+                },
+                {
+                  "key": "taxi",
+                  "value": "12",
+                  "type": "text"
+                },
+                {
+                  "key": "barrioInicio",
+                  "value": "Torices",
+                  "type": "text"
+                },
+                {
+                  "key": "barrioLlegada",
+                  "value": "Getsemaní",
+                  "type": "text"
+                },
+                {
+                  "key": "kilometros",
+                  "value": "4.5",
+                  "type": "text"
+                },
+                {
+                  "key": "duracionMinutos",
+                  "value": "15",
+                  "type": "text"
+                },
+                {
+                  "key": "cantidadPasajeros",
+                  "value": "3",
+                  "type": "text"
+                },
+                {
+                  "key": "precio",
+                  "value": "10000",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Respuesta 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Contiene: La placa del taxi no es válida', function () { pm.expect(pm.response.text()).to.include('La placa del taxi no es válida'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Más de 4 pasajeros",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}?route=carreras.store",
+              "host": [
+                "{{base_url}}"
+              ],
+              "query": [
+                {
+                  "key": "route",
+                  "value": "carreras.store"
+                }
+              ]
+            },
+            "description": "El value object CarreraTaxiCantidadPasajeros rechaza el valor.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "cliente",
+                  "value": "Pedro Pérez",
+                  "type": "text"
+                },
+                {
+                  "key": "taxista",
+                  "value": "Juan Gómez",
+                  "type": "text"
+                },
+                {
+                  "key": "taxi",
+                  "value": "ABC123",
+                  "type": "text"
+                },
+                {
+                  "key": "barrioInicio",
+                  "value": "Torices",
+                  "type": "text"
+                },
+                {
+                  "key": "barrioLlegada",
+                  "value": "Getsemaní",
+                  "type": "text"
+                },
+                {
+                  "key": "kilometros",
+                  "value": "4.5",
+                  "type": "text"
+                },
+                {
+                  "key": "duracionMinutos",
+                  "value": "15",
+                  "type": "text"
+                },
+                {
+                  "key": "cantidadPasajeros",
+                  "value": "9",
+                  "type": "text"
+                },
+                {
+                  "key": "precio",
+                  "value": "10000",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Respuesta 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Contiene: La cantidad de pasajeros debe estar entre 1 y 4', function () { pm.expect(pm.response.text()).to.include('La cantidad de pasajeros debe estar entre 1 y 4'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Kilómetros en cero",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}?route=carreras.store",
+              "host": [
+                "{{base_url}}"
+              ],
+              "query": [
+                {
+                  "key": "route",
+                  "value": "carreras.store"
+                }
+              ]
+            },
+            "description": "El value object CarreraTaxiKilometros rechaza el valor.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "cliente",
+                  "value": "Pedro Pérez",
+                  "type": "text"
+                },
+                {
+                  "key": "taxista",
+                  "value": "Juan Gómez",
+                  "type": "text"
+                },
+                {
+                  "key": "taxi",
+                  "value": "ABC123",
+                  "type": "text"
+                },
+                {
+                  "key": "barrioInicio",
+                  "value": "Torices",
+                  "type": "text"
+                },
+                {
+                  "key": "barrioLlegada",
+                  "value": "Getsemaní",
+                  "type": "text"
+                },
+                {
+                  "key": "kilometros",
+                  "value": "0",
+                  "type": "text"
+                },
+                {
+                  "key": "duracionMinutos",
+                  "value": "15",
+                  "type": "text"
+                },
+                {
+                  "key": "cantidadPasajeros",
+                  "value": "3",
+                  "type": "text"
+                },
+                {
+                  "key": "precio",
+                  "value": "10000",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Respuesta 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Contiene: deben ser mayores que cero', function () { pm.expect(pm.response.text()).to.include('deben ser mayores que cero'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Carrera inexistente",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}?route=carreras.show&id=no-existe",
+              "host": [
+                "{{base_url}}"
+              ],
+              "query": [
+                {
+                  "key": "route",
+                  "value": "carreras.show"
+                },
+                {
+                  "key": "id",
+                  "value": "no-existe"
+                }
+              ]
+            },
+            "description": "El caso de uso lanza CarreraTaxiNotFoundException."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Respuesta 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Contiene: No se encontró la carrera de taxi', function () { pm.expect(pm.response.text()).to.include('No se encontró la carrera de taxi'); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
