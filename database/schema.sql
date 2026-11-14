@@ -79,6 +79,21 @@ VALUES (
 ON DUPLICATE KEY UPDATE email = email;
 
 -- ------------------------------------------------------------
+-- 4.1 Usuarios de prueba (uno por rol y uno sin activar)
+--     maria.perez@crud.com     / maria12345      MEMBER   ACTIVE
+--     revisor@crud.com         / revisor12345    REVIEWER ACTIVE
+--     pendiente@crud.com       / pendiente12345  MEMBER   PENDING
+--     El usuario PENDING sirve para mostrar que el login rechaza
+--     las cuentas que no están activas.
+-- ------------------------------------------------------------
+INSERT INTO users (id, name, email, password, role, status)
+VALUES
+    ('00000000-0000-4000-8000-000000000002', 'María Pérez', 'maria.perez@crud.com', '$2y$10$vzLuVWpk86Q4Pn8sWOo/lu4wvfqXj6MEp9/NkgikFLhG3VkQVWAUi', 'MEMBER', 'ACTIVE'),
+    ('00000000-0000-4000-8000-000000000003', 'Revisor de Prueba', 'revisor@crud.com', '$2y$10$G94DGMR/r8B1xNR4hNXeRuZCETbK3u0zfhLwj8N4EORWEW.tTbdXy', 'REVIEWER', 'ACTIVE'),
+    ('00000000-0000-4000-8000-000000000004', 'Usuario Pendiente', 'pendiente@crud.com', '$2y$10$6QnRlSJ2kFPMJVqmZiXzBuTsr3.RKEIcZeDU5/eTihY5MDIzMYKUG', 'MEMBER', 'PENDING')
+ON DUPLICATE KEY UPDATE email = email;
+
+-- ------------------------------------------------------------
 -- 5. Datos de ejemplo para carreras de taxi
 -- ------------------------------------------------------------
 INSERT INTO carreras_taxi
