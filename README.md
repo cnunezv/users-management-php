@@ -205,5 +205,10 @@ del servicio en la nube si existe el secreto `RENDER_DEPLOY_HOOK_URL`.
 
 Para desplegar la imagen (Render u otro servicio con Docker) se configuran las
 variables `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME` y `DB_PASSWORD`
-apuntando a la base de datos en la nube. El contenedor escucha en el puerto
-que indique la variable `PORT`.
+apuntando a la base de datos en la nube. También se aceptan directamente las
+variables `MYSQL_ADDON_*` que exporta el add-on MySQL de Clever Cloud. El
+contenedor escucha en el puerto que indique la variable `PORT`.
+
+Al arrancar, el contenedor ejecuta `php database/migrate.php`, que aplica
+`database/schema.sql` sobre la base configurada (omite `CREATE DATABASE` y
+`USE`, porque en la nube la base ya existe). Es idempotente.
